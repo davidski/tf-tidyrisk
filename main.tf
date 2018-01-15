@@ -158,7 +158,7 @@ resource "aws_route53_record" "evaluator_v4" {
   type    = "CNAME"
   ttl     = 300
 
-  records = [ "scenario-explorer.c.severski.net.herokudns.com." ]
+  records = ["scenario-explorer.c.severski.net.herokudns.com."]
 }
 
 /*
@@ -174,3 +174,4 @@ resource "aws_route53_record" "evaluator_v6" {
   }
 }
 */
+
