@@ -14,4 +14,5 @@ module "evaluatorcdn" {
   alias               = "evaluator.severski.net"
   acm_certificate_arn = "${data.aws_acm_certificate.evaluator_docs.arn}"
   project             = "${var.project}"
+  audit_bucket        = "${data.terraform_remote_state.main.auditlogs}"
 }
