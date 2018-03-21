@@ -6,7 +6,7 @@ data "aws_acm_certificate" "evaluator_docs" {
 
 # configure cloudfront SSL caching for pkgdown site on GitHub
 module "evaluatorcdn" {
-  source = "git://github.com/davidski/tf-cloudfrontssl.git"
+  source = "github.com/davidski/tf-cloudfrontssl"
 
   origin_domain_name  = "davidski.github.io"
   origin_path         = "/evaluator"
