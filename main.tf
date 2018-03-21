@@ -22,11 +22,13 @@ data "aws_availability_zones" "available" {}
 # Data source for current account number
 data "aws_caller_identity" "current" {}
 
+/*
 # Data source for ACM certificate
 data "aws_acm_certificate" "evaluator" {
   provider = "aws.east_1"
   domain   = "scenario-explorer.c.severski.net"
 }
+*/
 
 # Data source for main infrastructure state
 data "terraform_remote_state" "main" {
