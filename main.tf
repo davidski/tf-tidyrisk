@@ -22,13 +22,11 @@ data "aws_availability_zones" "available" {}
 # Data source for current account number
 data "aws_caller_identity" "current" {}
 
-/*
 # Data source for ACM certificate
-data "aws_acm_certificate" "evaluator" {
+data "aws_acm_certificate" "scenario_explorer" {
   provider = "aws.east_1"
   domain   = "scenario-explorer.c.severski.net"
 }
-*/
 
 # Data source for main infrastructure state
 data "terraform_remote_state" "main" {
@@ -71,82 +69,19 @@ resource "heroku_app" "evaluator" {
   -------------
 */
 
-/*
-provider "cloudflare" {}
+# configure cloudfront SSL caching for Heroku shiny site
+module "scenario_explorer_cdn" {
+  source = "github.com/davidski/tf-cloudfrontssl"
 
-resource "cloudflare_record" "evaluator" {
-  domain  = "c.severski.net"
-  name    = "scenario-explorer"
-  value   = "${heroku_app.evaluator.heroku_hostname}"
-  type    = "CNAME"
-  proxied = true
+  origin_domain_name     = "${heroku_app.evaluator.heroku_hostname}"
+  origin_path            = ""
+  origin_id              = "scenario_explorercdn"
+  alias                  = "scenario-explorer.c.severski.net"
+  acm_certificate_arn    = "${data.aws_acm_certificate.scenario_explorer.arn}"
+  project                = "${var.project}"
+  audit_bucket           = "${data.terraform_remote_state.main.auditlogs}"
+  origin_protocol_policy = "http-only"
 }
-
-resource "aws_cloudfront_distribution" "evaluator" {
-  origin {
-    origin_id   = "myHerokuOrigin"
-    domain_name = "${heroku_app.evaluator.heroku_hostname}"
-
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "https-only"
-      origin_ssl_protocols   = ["TLSv1.2"]
-    }
-  }
-
-  enabled         = true
-  is_ipv6_enabled = true
-  comment         = "Some comment"
-
-  logging_config {
-    include_cookies = false
-    bucket          = "${data.terraform_remote_state.main.auditlogs}.s3.amazonaws.com"
-    prefix          = "cloudfront/evaluator"
-  }
-
-  aliases = ["scenario-explorer.c.severski.net"]
-
-  default_cache_behavior {
-    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-    cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "myHerokuOrigin"
-
-    forwarded_values {
-      query_string = false
-
-      cookies {
-        forward = "none"
-      }
-    }
-
-    viewer_protocol_policy = "redirect-to-https"
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-  }
-
-  price_class = "PriceClass_200"
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
-    }
-  }
-
-  tags {
-    Name       = "VP CloudFront"
-    project    = "${var.project}"
-    managed_by = "Terraform"
-  }
-
-  viewer_certificate {
-    acm_certificate_arn      = "${data.aws_acm_certificate.evaluator.arn}"
-    minimum_protocol_version = "TLSv1"
-    ssl_support_method       = "sni-only"
-  }
-}
-*/
 
 /*
   -------
@@ -160,7 +95,16 @@ resource "aws_route53_record" "evaluator_v4" {
   type    = "CNAME"
   ttl     = 300
 
-  records = ["scenario-explorer.c.severski.net.herokudns.com."]
+  records = ["${module.scenario_explorer_cdn.domain_name}"]
+}
+
+resource "aws_route53_record" "scenario_explorer" {
+  zone_id = "${data.aws_route53_zone.zone.zone_id}"
+  name    = "_1ea1132ea83df2cb5759a15889743903.scenario-explorer.c.severski.net."
+  type    = "CNAME"
+  ttl     = 7200
+
+  records = ["_2104122a6d525c62813b2e5c4888a07c.acm-validations.aws."]
 }
 
 /*
