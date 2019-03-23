@@ -56,7 +56,9 @@ data "aws_route53_zone" "zone" {
   --------------
 */
 
-provider "heroku" {}
+provider "heroku" {
+  version = "~> 1.80"
+}
 
 # Create a new Heroku app
 resource "heroku_app" "evaluator" {
