@@ -69,7 +69,7 @@ resource "aws_route53_record" "tidyrisk_www" {
 # configure cloudfront SSL caching for S3 hosted static content
 module "tidyriskcdn" {
   #source = "E:/terraform/modules//tf-cloudfronts3"
-  source = "git://github.com/davidski/tf-cloudfronts3.git"
+  source = "github.com/davidski/tf-cloudfronts3"
 
   bucket_name         = "tidyrisk"
   origin_id           = "tidyrisk_bucket"
