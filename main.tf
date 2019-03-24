@@ -57,7 +57,7 @@ data "aws_route53_zone" "zone" {
 */
 
 provider "heroku" {
-  version = "~> 1.80"
+  version = "~> 1.8"
 }
 
 # Create a new Heroku app
