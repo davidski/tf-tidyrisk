@@ -1,27 +1,27 @@
 # Data source for ACM certificate
 resource "aws_acm_certificate_validation" "tidyrisk" {
-  provider = "aws.east_1"
+  provider                = "aws.east_1"
   certificate_arn         = "${aws_acm_certificate.tidyrisk.arn}"
   validation_record_fqdns = ["${aws_route53_record.tidyrisk_cert_validation.fqdn}"]
 }
 
-resource "aws_acm_certificate" "tidyrisk" { 
+resource "aws_acm_certificate" "tidyrisk" {
   provider = "aws.east_1"
 
-  domain_name = "tidyrisk.org"
+  domain_name               = "tidyrisk.org"
   subject_alternative_names = ["*.tidyrisk.org"]
-  validation_method = "DNS"
+  validation_method         = "DNS"
+
   tags = {
     managed_by = "Terraform"
-    project = "${var.project}"
-    Name = "Tidyrisk domain"
+    project    = "${var.project}"
+    Name       = "Tidyrisk domain"
   }
 
   lifecycle {
     create_before_destroy = true
   }
 }
-
 
 /*
   ------------------------
