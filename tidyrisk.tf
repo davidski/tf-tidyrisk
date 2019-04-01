@@ -1,15 +1,17 @@
 # Data source for ACM certificate
+/*
 resource "aws_acm_certificate_validation" "tidyrisk" {
   provider                = "aws.east_1"
   certificate_arn         = "${aws_acm_certificate.tidyrisk.arn}"
   validation_record_fqdns = ["${aws_route53_record.tidyrisk_cert_validation.fqdn}"]
 }
+*/
 
 resource "aws_acm_certificate" "tidyrisk" {
   provider = "aws.east_1"
 
   domain_name               = "tidyrisk.org"
-  subject_alternative_names = ["*.tidyrisk.org"]
+  subject_alternative_names = ["*.tidyrisk.org", "evaluator.severski.net", "collector.severski.net"]
   validation_method         = "DNS"
 
   tags = {
@@ -81,10 +83,11 @@ module "tidyriskcdn" {
   #source = "E:/terraform/modules//tf-cloudfronts3"
   source = "github.com/davidski/tf-cloudfronts3"
 
-  bucket_name         = "tidyrisk"
-  origin_id           = "tidyrisk_bucket"
-  alias               = ["tidyrisk.org", "www.tidyrisk.org"]
-  acm_certificate_arn = "${aws_acm_certificate_validation.tidyrisk.certificate_arn}"
-  project             = "${var.project}"
-  audit_bucket        = "${data.terraform_remote_state.main.auditlogs}"
+  bucket_name              = "tidyrisk"
+  origin_id                = "tidyrisk_bucket"
+  alias                    = ["tidyrisk.org", "www.tidyrisk.org"]
+  acm_certificate_arn      = "${aws_acm_certificate.tidyrisk.arn}"
+  project                  = "${var.project}"
+  audit_bucket             = "${data.terraform_remote_state.main.auditlogs}"
+  minimum_protocol_version = "TLSv1.2_2018"
 }
