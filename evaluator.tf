@@ -32,11 +32,22 @@ module "evaluator_tidyrisk_cdn" {
 }
 
 
+
 /*
-  -------------
-  | CDN Setup |
-  -------------
+  ---------------------
+  | Scenario Explorer |
+  ---------------------
 */
+
+# Scenario Explorer is hosted in Heroku
+resource "heroku_app" "evaluator" {
+  name   = "scenario-explorer"
+  region = "us"
+
+  config_vars = {
+    BUILDPACK_URL = "http://github.com/virtualstaticvoid/heroku-buildpack-r.git#cedar-14-chroot"
+  }
+}
 
 # configure cloudfront SSL caching for Heroku shiny site
 module "scenario_explorer_cdn" {
@@ -47,47 +58,21 @@ module "scenario_explorer_cdn" {
   origin_domain_name     = heroku_app.evaluator.heroku_hostname
   origin_path            = ""
   origin_id              = "scenario_explorercdn"
-  alias                  = "scenario-explorer.c.severski.net"
-  acm_certificate_arn    = data.aws_acm_certificate.scenario_explorer.arn
+  alias                  = "scenario-explorer.tidyrisk.org"
+  acm_certificate_arn    = aws_acm_certificate.tidyrisk.arn
   project                = var.project
   audit_bucket           = data.terraform_remote_state.main.outputs.auditlogs
   origin_protocol_policy = "http-only"
 }
 
-/*
-  -------
-  | DNS |
-  -------
-*/
-
-resource "aws_route53_record" "evaluator_v4" {
-  zone_id = data.aws_route53_zone.zone.zone_id
-  name    = "scenario-explorer.${data.aws_route53_zone.zone.name}"
-  type    = "CNAME"
-  ttl     = 300
-
-  records = [module.scenario_explorer_cdn.domain_name]
-}
-
 resource "aws_route53_record" "scenario_explorer" {
-  zone_id = data.aws_route53_zone.zone.zone_id
-  name    = "_1ea1132ea83df2cb5759a15889743903.scenario-explorer.c.severski.net."
-  type    = "CNAME"
-  ttl     = 7200
-
-  records = ["_2104122a6d525c62813b2e5c4888a07c.acm-validations.aws."]
-}
-
-/*
-resource "aws_route53_record" "evaluator_v6" {
-  zone_id = data.aws_route53_zone.zone.zone_id
-  name    = "scenario-explorer.${data.aws_route53_zone.zone.name}"
-  type    = "AAAA"
+  zone_id = aws_route53_zone.tidyrisk.zone_id
+  name    = module.scenario_explorer_cdn.domain_name
+  type    = "A"
 
   alias {
-    name                   = aws_cloudfront_distribution.evaluator.domain_name
-    zone_id                = aws_cloudfront_distribution.evaluator.hosted_zone_id
+    name                   = module.scenario_explorer_cdn.domain_name
+    zone_id                = module.scenario_explorer_cdn.hosted_zone_id
     evaluate_target_health = false
   }
 }
-*/

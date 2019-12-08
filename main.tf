@@ -45,11 +45,6 @@ data "terraform_remote_state" "main" {
   }
 }
 
-# Find our target zone by id
-data "aws_route53_zone" "zone" {
-  zone_id = data.terraform_remote_state.main.outputs.severski_zoneid
-}
-
 /*
   --------------
   | Heroku App |
@@ -59,14 +54,3 @@ data "aws_route53_zone" "zone" {
 provider "heroku" {
   version = "~> 2.0"
 }
-
-# Create a new Heroku app
-resource "heroku_app" "evaluator" {
-  name   = "scenario-explorer"
-  region = "us"
-
-  config_vars = {
-    BUILDPACK_URL = "http://github.com/virtualstaticvoid/heroku-buildpack-r.git#cedar-14-chroot"
-  }
-}
-
