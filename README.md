@@ -1,4 +1,4 @@
-## tf-evaluator
+## tf-tidyrisk
 
 Terraform module for deploying tidyrisk
 

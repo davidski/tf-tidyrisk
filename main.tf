@@ -1,19 +1,20 @@
 provider "aws" {
-  region  = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region  = var.aws_region
+  profile = var.aws_profile
 
-  version = "~> 1.54"
+  version = "~> 2.7"
 
   assume_role {
     role_arn = "arn:aws:iam::754135023419:role/administrator-service"
   }
 }
 
-provider "aws.east_1" {
+provider "aws" {
+  alias = "us-east-1"
   region  = "us-east-1"
-  profile = "${var.aws_profile}"
+  profile = var.aws_profile
 
-  version = "~> 1.54"
+  version = "~> 2.7"
 
   assume_role {
     role_arn = "arn:aws:iam::754135023419:role/administrator-service"
@@ -28,7 +29,7 @@ data "aws_caller_identity" "current" {}
 
 # Data source for ACM certificate
 data "aws_acm_certificate" "scenario_explorer" {
-  provider = "aws.east_1"
+  provider = aws.us-east-1
   domain   = "scenario-explorer.c.severski.net"
 }
 
@@ -36,7 +37,7 @@ data "aws_acm_certificate" "scenario_explorer" {
 data "terraform_remote_state" "main" {
   backend = "s3"
 
-  config {
+  config = {
     bucket  = "infrastructure-severski"
     key     = "terraform/infrastructure.tfstate"
     region  = "us-west-2"
@@ -46,7 +47,7 @@ data "terraform_remote_state" "main" {
 
 # Find our target zone by id
 data "aws_route53_zone" "zone" {
-  zone_id = "${data.terraform_remote_state.main.severski_zoneid}"
+  zone_id = data.terraform_remote_state.main.outputs.severski_zoneid
 }
 
 /*
@@ -56,7 +57,7 @@ data "aws_route53_zone" "zone" {
 */
 
 provider "heroku" {
-  version = "~> 1.8"
+  version = "~> 2.0"
 }
 
 # Create a new Heroku app
@@ -64,66 +65,8 @@ resource "heroku_app" "evaluator" {
   name   = "scenario-explorer"
   region = "us"
 
-  config_vars {
+  config_vars = {
     BUILDPACK_URL = "http://github.com/virtualstaticvoid/heroku-buildpack-r.git#cedar-14-chroot"
   }
 }
-
-/*
-  -------------
-  | CDN Setup |
-  -------------
-*/
-
-# configure cloudfront SSL caching for Heroku shiny site
-module "scenario_explorer_cdn" {
-  source = "github.com/davidski/tf-cloudfrontssl"
-
-  origin_domain_name     = "${heroku_app.evaluator.heroku_hostname}"
-  origin_path            = ""
-  origin_id              = "scenario_explorercdn"
-  alias                  = "scenario-explorer.c.severski.net"
-  acm_certificate_arn    = "${data.aws_acm_certificate.scenario_explorer.arn}"
-  project                = "${var.project}"
-  audit_bucket           = "${data.terraform_remote_state.main.auditlogs}"
-  origin_protocol_policy = "http-only"
-}
-
-/*
-  -------
-  | DNS |
-  -------
-*/
-
-resource "aws_route53_record" "evaluator_v4" {
-  zone_id = "${data.aws_route53_zone.zone.zone_id}"
-  name    = "scenario-explorer.${data.aws_route53_zone.zone.name}"
-  type    = "CNAME"
-  ttl     = 300
-
-  records = ["${module.scenario_explorer_cdn.domain_name}"]
-}
-
-resource "aws_route53_record" "scenario_explorer" {
-  zone_id = "${data.aws_route53_zone.zone.zone_id}"
-  name    = "_1ea1132ea83df2cb5759a15889743903.scenario-explorer.c.severski.net."
-  type    = "CNAME"
-  ttl     = 7200
-
-  records = ["_2104122a6d525c62813b2e5c4888a07c.acm-validations.aws."]
-}
-
-/*
-resource "aws_route53_record" "evaluator_v6" {
-  zone_id = "${data.aws_route53_zone.zone.zone_id}"
-  name    = "scenario-explorer.${data.aws_route53_zone.zone.name}"
-  type    = "AAAA"
-
-  alias {
-    name                   = "${aws_cloudfront_distribution.evaluator.domain_name}"
-    zone_id                = "${aws_cloudfront_distribution.evaluator.hosted_zone_id}"
-    evaluate_target_health = false
-  }
-}
-*/
 
