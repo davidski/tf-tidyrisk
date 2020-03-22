@@ -11,7 +11,7 @@ resource "aws_acm_certificate" "tidyrisk" {
   provider                = aws.us-east-1
 
   domain_name               = "tidyrisk.org"
-  subject_alternative_names = ["*.tidyrisk.org", "evaluator.severski.net", "collector.severski.net"]
+  subject_alternative_names = ["*.tidyrisk.org"]
   validation_method         = "DNS"
 
   tags = {
