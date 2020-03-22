@@ -39,6 +39,8 @@ module "evaluator_tidyrisk_cdn" {
   ---------------------
 */
 
+
+/*
 # Scenario Explorer is hosted in Heroku
 resource "heroku_app" "evaluator" {
   name   = "scenario-explorer"
@@ -76,3 +78,4 @@ resource "aws_route53_record" "scenario_explorer" {
     evaluate_target_health = false
   }
 }
+*/
