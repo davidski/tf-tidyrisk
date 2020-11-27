@@ -8,7 +8,7 @@ resource "aws_acm_certificate_validation" "tidyrisk" {
 */
 
 resource "aws_acm_certificate" "tidyrisk" {
-  provider                = aws.us-east-1
+  provider = aws.us-east-1
 
   domain_name               = "tidyrisk.org"
   subject_alternative_names = ["*.tidyrisk.org"]
@@ -81,8 +81,8 @@ resource "aws_route53_record" "tidyrisk_www" {
 # configure cloudfront SSL caching for S3 hosted static content
 module "tidyriskcdn" {
   #source = "../../modules//cloudfronts3"
-  source = "github.com/davidski/tf-cloudfronts3"
-  providers                = { aws = aws.us-east-1, aws.bucket = aws}
+  source    = "github.com/davidski/tf-cloudfronts3?ref=ea7c42b"
+  providers = { aws = aws.us-east-1, aws.bucket = aws }
 
   bucket_name              = "tidyrisk"
   origin_id                = "tidyrisk_bucket"

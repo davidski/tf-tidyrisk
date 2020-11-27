@@ -18,16 +18,16 @@ resource "aws_route53_record" "evaluator_tidyrisk" {
 
 # S3 sourced evaluator.tidyrisk.org
 module "evaluator_tidyrisk_cdn" {
-  source = "git@github.com:davidski/tf-cloudfronts3.git"
+  source = "git@github.com:davidski/tf-cloudfronts3.git?ref=ea7c42b"
   #source = "../../modules//cloudfronts3"
 
-  providers                = { aws = aws.us-east-1, aws.bucket = aws}
-  bucket_name         = "evaluator-tidyrisk"
-  origin_id           = "evaluator_bucket"
-  alias               = ["evaluator.tidyrisk.org"]
-  acm_certificate_arn = aws_acm_certificate.tidyrisk.arn
-  project             = var.project
-  audit_bucket        = data.terraform_remote_state.main.outputs.auditlogs
+  providers                = { aws = aws.us-east-1, aws.bucket = aws }
+  bucket_name              = "evaluator-tidyrisk"
+  origin_id                = "evaluator_bucket"
+  alias                    = ["evaluator.tidyrisk.org"]
+  acm_certificate_arn      = aws_acm_certificate.tidyrisk.arn
+  project                  = var.project
+  audit_bucket             = data.terraform_remote_state.main.outputs.auditlogs
   minimum_protocol_version = "TLSv1.2_2018"
 }
 

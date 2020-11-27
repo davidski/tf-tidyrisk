@@ -18,9 +18,9 @@ resource "aws_route53_record" "collector_tidyrisk" {
 
 # S3 sourced evaluator.tidyrisk.org
 module "collector_tidyrisk_cdn" {
-  source = "git@github.com:davidski/tf-cloudfronts3.git"
+  source = "git@github.com:davidski/tf-cloudfronts3.git?ref=ea7c42b"
   #source = "../../modules//cloudfronts3"
-  providers                = { aws = aws.us-east-1, aws.bucket = aws}
+  providers = { aws = aws.us-east-1, aws.bucket = aws }
 
   bucket_name              = "collector-tidyrisk"
   origin_id                = "collector_bucket"
